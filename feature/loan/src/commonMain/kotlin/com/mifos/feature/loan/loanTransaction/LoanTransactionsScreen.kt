@@ -42,7 +42,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -70,7 +69,9 @@ import androidx.lifecycle.viewModelScope
 import com.mifos.core.common.utils.DateHelper
 import com.mifos.core.designsystem.component.MifosScaffold
 import com.mifos.core.designsystem.component.MifosSweetError
+import com.mifos.core.designsystem.component.MifosTextButton
 import com.mifos.core.designsystem.icon.MifosIcons
+import com.mifos.core.designsystem.theme.DesignToken
 import com.mifos.core.model.objects.account.loan.Transaction
 import com.mifos.core.model.objects.account.loan.Type
 import com.mifos.core.ui.components.MifosCheckBox
@@ -196,41 +197,35 @@ private fun FilterBar(
     onHideAccrualsChange: (Boolean) -> Unit,
     onExportClick: () -> Unit,
 ) {
-    Card(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        ),
+            .padding(horizontal = DesignToken.padding.medium, vertical = DesignToken.padding.small),
+        horizontalArrangement = Arrangement.spacedBy(DesignToken.spacing.medium),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+        MifosCheckBox(
+            text = stringResource(Res.string.feature_loan_hide_reversed),
+            checked = hideReversed,
+            onCheckChanged = onHideReversedChange,
+        )
+
+        MifosCheckBox(
+            text = stringResource(Res.string.feature_loan_hide_accruals),
+            checked = hideAccruals,
+            onCheckChanged = onHideAccrualsChange,
+        )
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        MifosTextButton(
+            onClick = onExportClick,
         ) {
-            MifosCheckBox(
-                text = stringResource(Res.string.feature_loan_hide_reversed),
-                checked = hideReversed,
-                onCheckChanged = onHideReversedChange,
-            )
-
-            MifosCheckBox(
-                text = stringResource(Res.string.feature_loan_hide_accruals),
-                checked = hideAccruals,
-                onCheckChanged = onHideAccrualsChange,
-            )
-
-            Button(
-                onClick = onExportClick,
-                modifier = Modifier.padding(start = 8.dp),
-            ) {
-                Text(text = stringResource(Res.string.feature_loan_export))
-            }
+            Text(text = stringResource(Res.string.feature_loan_export))
         }
     }
+
+    HorizontalDivider()
 }
 
 @Composable

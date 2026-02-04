@@ -304,5 +304,8 @@
     <string name="feature_loan_note">Note</string>
     <string name="feature_loan_waive_penalties">Waive Penalties</string>
     <string name="feature_loan_no_penalties_found">No penalties found</string>
+    <string name="feature_loan_hide_reversed">Hide Reversed</string>
+    <string name="feature_loan_hide_accruals">Hide Accruals</string>
+    <string name="feature_loan_export">Export</string>
 
 </resources>

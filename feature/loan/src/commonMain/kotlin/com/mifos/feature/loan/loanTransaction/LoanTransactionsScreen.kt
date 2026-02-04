@@ -16,6 +16,9 @@ import androidclient.feature.loan.generated.resources.feature_loan_loan_fees
 import androidclient.feature.loan.generated.resources.feature_loan_loan_interest
 import androidclient.feature.loan.generated.resources.feature_loan_loan_penalty
 import androidclient.feature.loan.generated.resources.feature_loan_loan_transactions
+import androidclient.feature.loan.generated.resources.feature_loan_export
+import androidclient.feature.loan.generated.resources.feature_loan_hide_accruals
+import androidclient.feature.loan.generated.resources.feature_loan_hide_reversed
 import androidclient.feature.loan.generated.resources.feature_loan_no_transactions
 import androidclient.feature.loan.generated.resources.feature_loan_office
 import androidclient.feature.loan.generated.resources.feature_loan_principal
@@ -39,6 +42,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -69,6 +73,7 @@ import com.mifos.core.designsystem.component.MifosSweetError
 import com.mifos.core.designsystem.icon.MifosIcons
 import com.mifos.core.model.objects.account.loan.Transaction
 import com.mifos.core.model.objects.account.loan.Type
+import com.mifos.core.ui.components.MifosCheckBox
 import com.mifos.core.ui.components.MifosEmptyUi
 import com.mifos.core.ui.components.MifosProgressIndicator
 import com.mifos.room.entities.accounts.loans.LoanWithAssociationsEntity
@@ -148,9 +153,82 @@ internal fun LoanTransactionsScreen(
 private fun LoanTransactionsContent(
     transactions: List<Transaction>,
 ) {
-    LazyColumn {
-        items(transactions) { transaction ->
-            LoanTransactionsItemRow(transaction = transaction)
+    var hideReversed by rememberSaveable { mutableStateOf(false) }
+    var hideAccruals by rememberSaveable { mutableStateOf(false) }
+
+    val filteredTransactions = remember(transactions, hideReversed, hideAccruals) {
+        transactions.filter { transaction ->
+            val typeValue = transaction.type?.value ?: ""
+            when {
+                hideReversed && typeValue.contains("Reversed", ignoreCase = true) -> false
+                hideAccruals && typeValue.contains("Accrual", ignoreCase = true) -> false
+                else -> true
+            }
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        FilterBar(
+            hideReversed = hideReversed,
+            hideAccruals = hideAccruals,
+            onHideReversedChange = { hideReversed = it },
+            onHideAccrualsChange = { hideAccruals = it },
+            onExportClick = { /* TODO: Export functionality */ },
+        )
+
+        if (filteredTransactions.isEmpty()) {
+            MifosEmptyUi(text = stringResource(Res.string.feature_loan_no_transactions))
+        } else {
+            LazyColumn {
+                items(filteredTransactions) { transaction ->
+                    LoanTransactionsItemRow(transaction = transaction)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FilterBar(
+    hideReversed: Boolean,
+    hideAccruals: Boolean,
+    onHideReversedChange: (Boolean) -> Unit,
+    onHideAccrualsChange: (Boolean) -> Unit,
+    onExportClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            MifosCheckBox(
+                text = stringResource(Res.string.feature_loan_hide_reversed),
+                checked = hideReversed,
+                onCheckChanged = onHideReversedChange,
+            )
+
+            MifosCheckBox(
+                text = stringResource(Res.string.feature_loan_hide_accruals),
+                checked = hideAccruals,
+                onCheckChanged = onHideAccrualsChange,
+            )
+
+            Button(
+                onClick = onExportClick,
+                modifier = Modifier.padding(start = 8.dp),
+            ) {
+                Text(text = stringResource(Res.string.feature_loan_export))
+            }
         }
     }
 }
